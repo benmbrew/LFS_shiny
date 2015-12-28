@@ -1,6 +1,13 @@
 library(ggplot2)
 library(dplyr)
 
+
+if('lfs_models.RData' %in% dir()){
+  
+  load('lfs_models.RData')
+  
+}else{
+  
 # read in clinicalical data
 clinical <- read.csv('clinical.csv')
 
@@ -136,3 +143,32 @@ test$svm_true <- test$svm[, 1]
 test$tune_true <- test$tune[,2]
 
 
+# Plot ROC curves
+pred_logit <- prediction(test$logit, test$acc_status)
+pred_rf <- prediction(test$rf_true, test$acc_status)
+pred_svm <- prediction(test$svm_true, test$acc_status)
+pred_lasso <- prediction(test$lasso, test$acc_status)
+pred_ridge <- prediction(test$ridge, test$acc_status)
+pred_tune <- prediction(test$tune_true, test$acc_status)
+
+perf_logit <- performance(pred_logit, "tpr","fpr")
+auc_logit <- round(as.numeric(performance(pred_logit,"auc")@y.values), 3)
+
+perf_rf <- performance(pred_rf, "tpr", "fpr")
+auc_rf <- round(as.numeric(performance(pred_rf,"auc")@y.values), 3)
+
+perf_svm <- performance(pred_svm, "tpr", "fpr")
+auc_svm <- round(as.numeric(performance(pred_svm,"auc")@y.values), 3)
+
+perf_lasso <- performance(pred_lasso, 'tpr', 'fpr')
+auc_lasso <- round(as.numeric(performance(pred_lasso,"auc")@y.values), 3)
+
+perf_ridge <- performance(pred_ridge, 'tpr', 'fpr')
+auc_ridge <- round(as.numeric(performance(pred_lasso,"auc")@y.values), 3)
+
+perf_tune <- performance(pred_tune, 'tpr', 'fpr')
+auc_tune <- round(as.numeric(performance(pred_tune, "auc")@y.values), 3)
+
+
+save.image('lfs_models.RData')
+}

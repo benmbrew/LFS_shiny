@@ -4,22 +4,28 @@
 #
 # http://shiny.rstudio.com
 #
-
 library(shiny)
-
-# Source the read in
-source('read_in.R')
-
 shinyServer(function(input, output) {
   
   # DYNAMIC USER INTERFACE FOR SELECTING CANCER
-  output$test <- renderUI(
-    selectInput('cancer', 
-                'Cancer',
-                c(unique(sort(as.character(cancer$cancer))), 'All cancers'),
-                selected = 'All cancers')
-    )
-  
+#   output$test <- renderUI(
+#     selectInput('cancer', 
+#                 'Cancer',
+#                 c(unique(sort(as.character(cancer$cancer))), 'All cancers'),
+#                 selected = 'All cancers')
+#     )
+#   output$test2 <- renderUI(
+#     selectInput('models',
+#                 'Models',
+#                 choices = c('Logit' = 'perf_logit', 
+#                             'Random Forest' = 'perf_rf',
+#                             'SVM' = 'perf_svm',
+#                             'Ridge'= 'perf_ridge',
+#                             'Lasso' = 'perf_lasso',
+#                             'All Models'),
+#                 selected = 'All Models')
+#   )
+#   
   
   # SUBSET CANCER TO JUST THE USER'S INPUT
   this_cancer <- reactive({
@@ -104,9 +110,67 @@ shinyServer(function(input, output) {
     
   })
   
+  output$plot3 <- renderPlot({
   
+    if(input$models == 'All Models'){
+      plot(perf_logit, col = 'lightblue')
+      plot(perf_rf, add = TRUE, col = 'red')
+      plot(perf_svm, add = TRUE, col = 'green')
+      plot(perf_lasso, add = TRUE, col = 'blue')
+      plot(perf_ridge, add = TRUE, col = 'purple')
+      abline(a = 0, b = 1, lty = 3)
+      
+      
+      legend('bottomright',
+             lty = 1,
+             legend = c(paste(auc_logit,'logit'), 
+                        paste(auc_rf,'RF'), 
+                        paste(auc_svm, 'SVM'), 
+                        paste(auc_ridge, 'ridge'),
+                        paste(auc_lasso, 'lasso')),
+             col = c('lightblue', 'red', 'green', 'blue', 'purple'),
+             title = 'AUC',
+             bty = 'n')
+    }
+    if(input$models == 'perf_logit'){
+  plot(perf_logit, col = 'lightblue', lwd = 2)
+  legend('bottomright',
+         lty = 1,
+         legend = c(paste(auc_logit,'logit')),
+                    title = 'AUC', col = 'lightblue')
+    }
+  if(input$models == 'perf_rf'){
+      plot(perf_rf, col = 'red',lwd = 2)
+      legend('bottomright',
+             lty = 1,
+             legend = c(paste(auc_rf,'RF')),
+             title = 'AUC', col = 'red')
+  }
+  if(input$models == 'perf_svm'){
+    plot(perf_svm, col = 'green', lwd = 2)
+    legend('bottomright',
+           lty = 1,
+           legend = c(paste(auc_svm,'SVM')),
+           title = 'AUC', col = 'green')
+  }
+  if(input$models == 'perf_lasso'){
+    plot(perf_lasso, col = 'blue', lwd = 2)
+    legend('bottomright',
+           lty = 1,
+           legend = c(paste(auc_lasso,'Lasso')),
+           title = 'AUC', col = 'blue')
+  }
+  if(input$models == 'perf_ridge'){
+    plot(perf_ridge, col = 'purple', lwd = 2)
+    legend('bottomright',
+           lty = 1,
+           legend = c(paste(auc_ridge,'Ridge')),
+           title = 'AUC', col = 'purple')
+  }
+    
+    
+  })
   
-
 })
 
 
