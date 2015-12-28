@@ -1,10 +1,10 @@
 
-# This is the server logic for a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
+
+library(dplyr)
 library(shiny)
+load('lfs_models.RData')
+
+
 shinyServer(function(input, output) {
   
   # DYNAMIC USER INTERFACE FOR SELECTING CANCER
@@ -172,5 +172,7 @@ shinyServer(function(input, output) {
   })
   
 })
+
+
 
 

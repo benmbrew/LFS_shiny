@@ -1,12 +1,4 @@
-library(ggplot2)
-library(dplyr)
 
-
-if('lfs_models.RData' %in% dir()){
-  
-  load('lfs_models.RData')
-  
-}else{
   
 # read in clinicalical data
 clinical <- read.csv('clinical.csv')
@@ -25,6 +17,7 @@ library(AUC)
 library(randomForest)
 library(e1071)
 library(glmnet)
+library(ggplot2)
 
 # predict ACC status 
 # create label for acc status
@@ -171,4 +164,4 @@ auc_tune <- round(as.numeric(performance(pred_tune, "auc")@y.values), 3)
 
 
 save.image('lfs_models.RData')
-}
+
