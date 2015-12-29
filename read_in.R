@@ -1,5 +1,5 @@
 
-  
+library(dplyr)
 # read in clinicalical data
 clinical <- read.csv('clinical.csv')
 

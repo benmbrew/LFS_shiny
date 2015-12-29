@@ -1,12 +1,12 @@
 
 
-library(dplyr)
 library(shiny)
+
 load('lfs_models.RData')
 
 
 shinyServer(function(input, output) {
-  
+    
   # DYNAMIC USER INTERFACE FOR SELECTING CANCER
 #   output$test <- renderUI(
 #     selectInput('cancer', 

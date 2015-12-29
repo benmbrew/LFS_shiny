@@ -1,10 +1,9 @@
 
 #shinyapps::deployApp('/home/benbrew/Desktop/lfs_shiny')
-library(shiny)
+#library(shiny)
 #library(shinyapps)
-
-
 shinyUI(pageWithSidebar(
+  
   
   # Application title
   headerPanel("LFS"),
