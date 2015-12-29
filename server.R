@@ -2,7 +2,8 @@
 
 library(shiny)
 
-load('lfs_models.RData')
+#load('lfs_models.RData')
+#source('read_in.R')
 
 
 shinyServer(function(input, output) {

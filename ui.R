@@ -1,7 +1,9 @@
 
-#shinyapps::deployApp('/home/benbrew/Desktop/lfs_shiny')
+# shinyapps::deployApp()
 #library(shiny)
-#library(shinyapps)
+library(shinyapps)
+source('read_in.R')
+
 shinyUI(pageWithSidebar(
   
   
