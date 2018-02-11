@@ -1,128 +1,102 @@
 
 # shinyapps::deployApp()
 #library(shiny)
-library(shinyapps)
+library(shiny)
+library(ggplot2)
+library(DT)
+
+# source script to get data
 source('read_in.R')
 
-shinyUI(pageWithSidebar(
-  
-  
-  # Application title
-  headerPanel("LFS"),
-  
-  # Sidebar with a slider input for number of bins
-  sidebarPanel(
-    conditionalPanel(
-      condition = "input.tabs == 'Model Results'",
-      selectInput('models',
-                  'Models',
-                  choices = c('Logit' = 'perf_logit', 
-                              'Random Forest' = 'perf_rf',
-                              'SVM' = 'perf_svm',
-                              'Ridge'= 'perf_ridge',
-                              'Lasso' = 'perf_lasso',
-                              'All Models'),
-                  selected = 'All Models')
+# UI
+ui <- fluidPage(
+  titlePanel("LFS"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("clin_group", 
+                  "Group by variable",
+                  choices = clin_choices_group,
+                  multiple = TRUE),
+      uiOutput("clin_summarise")
     ),
     
-    conditionalPanel(
-      condition = "input.tabs == 'Cancer Counts'",
-      selectInput('cancer', 
-                  'Cancer',
-                  c(unique(sort(as.character(cancer$cancer))), 'All cancers'),
-                  selected = 'All cancers')
-    ),
-    conditionalPanel(
-      condition = "input.tabs == 'Mean Age of Onset'",
-      selectInput('cancer', 
-                  'Cancer',
-                  c(unique(sort(as.character(cancer$cancer))), 'All cancers'),
-                  selected = 'All cancers')
-    )
-    #uiOutput("test2"),
-    
-  ),
-  
-  # Show a plot of the generated distribution
-  mainPanel(
-    tabsetPanel(id = 'tabs',
-                tabPanel('Model Results',
-                         plotOutput('plot3')),
-                tabPanel('Cancer Counts',
-                         plotOutput("plot1"),
-                         tableOutput('table1')),
-                tabPanel('Mean Age of Onset',
-                         plotOutput('plot2'),
-                         tableOutput('table2'))
+    mainPanel(
+      tableOutput("clin_tab"),
+      plotOutput("clin_plot"),
+      textOutput('no_data_text'),
+      br(), br()
+      
     )
   )
+)
+
+
+# SERVER
+server <- function(input, output) {
   
-))
-
-
-
-
-
-library(shiny)
-
-#load('lfs_models.RData')
-#source('read_in.R')
-
-
-shinyServer(function(input, output) {
   
- 
-  # SUBSET CANCER TO JUST THE USER'S INPUT
-  this_cancer <- reactive({
-    if(input$cancer == 'All cancers'){
-      cancer
-    }else{
-      cancer[cancer$cancer == input$cancer,]
-      
-    }
-  })
-  
-  #  BARPLOT
-  output$plot1 <- renderPlot({
+  output$clin_summarise <- renderUI({
     
-    if(input$cancer == 'All cancers'){
-      temp <- this_cancer()
-      temp <- temp %>%
-        group_by(tp53)%>%
-        summarise(counts = sum(counts))
-      bp <- barplot(temp$counts, names.arg = temp$tp53,
-                    col = adjustcolor('lightblue', alpha.f = 0.4))
-      
-    }else{
-      temp <- this_cancer()
-      bp <- barplot(temp$counts,
-                    names.arg = temp$tp53,
-                    col = adjustcolor('lightblue', alpha.f = 0.4))
+    first_variable <- input$clin_group
+    if(is.null(first_variable)) {
+      NULL
+    } else {
+      grouped_var <- input$clin_group
+      clin_choices_sum <- clin_choices_sum[!grepl(grouped_var, clin_choices_sum)]
+      selectInput('clin_summarise',
+                  'Choose a second variable to summarise',
+                  choices = clin_choices_sum)
     }
     
   })
   
-  # TABLE
-  output$table1 <- renderTable({
+  output$clin_tab <- renderDataTable({
     
-    if(input$cancer == 'All cancers'){
-      temp <- this_cancer()
-      temp <- temp %>%
-        group_by(tp53)%>%
-        summarise(counts = sum(counts))
-      temp
-    }else{
-      temp <- this_cancer() #() must be used with reactive objects.
-      temp <- temp[, c('tp53', 'counts')]
-      temp
+    group_var <- input$clin_group
+    summarise_var <- input$clin_summarise
+    
+    get_these_vars <- c(group_var, summarise_var)
+    
+    if(is.null(group_var) & is.null(summarise_var)) {
+      NULL
+    } else {
+      if(!is.null(group_var) & is.null(summarise_var)) {
+        clin_sub <- clin[, colnames(clin) %in% get_these_vars]
+        if(length(group_var) == 1){
+          clin_sub <- clin_sub[!is.na(clin_sub)]
+          clin_sub <- as.data.frame(clin_sub)
+          colnames(clin_sub) <- group_var
+        } else {
+          clin_sub <- clin_sub[complete.cases(clin_sub),]
+          colnames(clin_sub) <- group_var
+        }
+        the_tible <- clin_sub %>% group_by_at(group_var) %>% summarise(Counts = n())
+      } else if(!is.null(group_var) & !is.null(summarise_var)) {
+        clin_sub <- clin[, colnames(clin) %in% get_these_vars]
+        clin_sub <- clin_sub[complete.cases(clin_sub),]
+        the_tible <- clin_sub %>% group_by_at(group_var) %>% summarise_all(funs(mean(. , na.rm = T)))
+      }
+      DT::datatable(the_tible)
     }
     
   })
   
+  output$no_data_text <- renderText({
+    
+    if(is.null(input$clin_group)){
+      paste0('Please select a variable to group by')
+    } else {
+      NULL
+    }
+    
+  })
+  
+  output$clin_plot <- renderPlot({
+   
+    
+  })
   
   
-})
+}
 
-
-
-
+shinyApp(ui = ui, server = server)

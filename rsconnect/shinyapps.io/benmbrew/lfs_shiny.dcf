@@ -2,3 +2,4 @@ name: lfs_shiny
 account: benmbrew
 bundleId: 340380
 url: https://benmbrew.shinyapps.io/lfs_shiny
+server: shinyapps.io
