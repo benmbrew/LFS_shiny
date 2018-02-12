@@ -49,21 +49,23 @@ ui <- dashboardPage(skin = 'red',
                                 fluidRow(column(12,
                                                strong('Examine by'))),
                                 fluidRow(column(4, 
-                                                checkboxInput('gender',
-                                                              'Gender',
-                                                              value = TRUE)),
+                                                checkboxInput('cancer_status',
+                                                              'Cancer type',
+                                                              value = NULL)),
                                          column(4,
                                                 checkboxInput('p53_status',
-                                                              'tp53 status')),
+                                                              'tp53 status',
+                                                              value = NULL)),
                                          column(4,
-                                                checkboxInput('cancer_status',
-                                                              'Cancer type'))),
+                                                checkboxInput('gender',
+                                                              'Gender',
+                                                              value = NULL))),
                                 fluidRow(column(4,
-                                                uiOutput('gender_filter')),
+                                                uiOutput('cancer_filter')),
                                          column(4,
                                                 uiOutput('p53_filter')),
                                          column(4,
-                                                uiOutput('cancer_filter'))),
+                                                uiOutput('gender_filter'))),
                                 
                                 
                                 tabsetPanel(
@@ -108,12 +110,14 @@ server <- function(input, output) {
     if(input$gender){
       gender_types <- unique(clin$gender)
       gender_types <- gender_types[!is.na(gender_types)]
-      gender_types <- c('All', gender_types)
+      # gender_types <- c('All', gender_types)
       selectInput('gender_filter',
                   'Filter',
                   choices = gender_types,
-                  selected = 'All',
+                  selected = NULL,
                   multiple = TRUE)
+    }else{
+      NULL
     }
   })
   
@@ -121,11 +125,14 @@ server <- function(input, output) {
     if(input$p53_status){
       p53_types <- unique(clin$p53_germline)
       p53_types <- p53_types[!is.na(p53_types)]
-      p53_types <- c('All', p53_types)
+      # p53_types <- c('All', p53_types)
       selectInput('p53_filter',
                   'Filter',
-                  choices = p53_types ,
+                  choices = p53_types,
+                  selected = NULL,
                   multiple = TRUE)
+    } else {
+      NULL
     }
   })
   
@@ -133,56 +140,71 @@ server <- function(input, output) {
     if(input$cancer_status){
       cancer_types <- unique(clin$cancer_diagnosis_diagnoses)
       cancer__types <- cancer_types[!is.na(cancer_types)]
-      cancer_types <- c('All', cancer_types)
+      # cancer_types <- c('All', cancer_types)
       selectInput('cancer_filter',
                   'Filter',
-                  choices = cancer_types ,
+                  choices = cancer_types,
+                  selected = NULL,
                   multiple = TRUE)
+    } else {
+      NULL
     }
-  
   })
   
   get_data <- reactive({
     
-    x <- clin
+    # set default to NULL
+    gender <- p53_status <- cancer_status <- NULL
     
-    if(is.null(input$gender)){
+    if(input$gender){
+      gender <- 'gender'
+    } 
+    if(input$p53_status){
+      p53_status <- 'p53_germline'
+    } 
+    if(input$cancer_status){
+      cancer_status <- 'cancer_diagnosis_diagnoses'
+    }
+    # group_by_cols <- c(input$gender, input$p53_status, input$cancer_status)
+    group_by_cols <- c(gender, p53_status, cancer_status)
+    
+    if(is.null(group_by_cols)) {
       return(NULL)
-    } else if(input$gender & is.null(input$gender_filter)){
-        x <- x %>% group_by(gender) %>% filter(!is.na(gender)) %>%
-          summarise(mean_age_diagnosis = round(mean(age_diagnosis, na.rm = T), 2),
-                    mean_age_sample_collection = round(mean(age_sample_collection, na.rm = T), 2),
-                    mean_current_age = round(mean(age, na.rm = T), 2))
-      } else if(input$gender & (input$gender_filter == 'All')) {
-        x <- x %>% group_by(gender) %>% filter(!is.na(gender)) %>%
-          summarise(mean_age_diagnosis = round(mean(age_diagnosis, na.rm = T), 2),
-                    mean_age_sample_collection = round(mean(age_sample_collection, na.rm = T), 2),
-                    mean_current_age = round(mean(age, na.rm = T), 2))
-      } else if(input$gender & !is.null(input$gender_filter)) {
-        x <- x %>% group_by(gender) %>% filter(!is.na(gender)) %>%
-          summarise(mean_age_diagnosis = round(mean(age_diagnosis, na.rm = T), 2),
-                    mean_age_sample_collection = round(mean(age_sample_collection, na.rm = T), 2),
-                    mean_current_age = round(mean(age, na.rm = T), 2))
+    } else {
+      x  <- clin %>% 
+        group_by_at(group_by_cols) %>%  
+        summarise(`Mean age diagnosis` = round(mean(age_diagnosis, na.rm = T), 2),
+                  `Mean age of sample collection` = round(mean(age_sample_collection, na.rm = T), 2))
+      
+      if(input$gender & !is.null(input$gender_filter)) {
         x <- x %>% filter(gender %in% input$gender_filter)
       }
+      
+      if(input$p53_status & !is.null(input$p53_filter)) {
+        x <- x %>% filter(p53_germline %in% input$p53_filter)
+      }
+      
+      if(input$cancer_status & !is.null(input$cancer_filter)) {
+        x <- x %>% filter(cancer_diagnosis_diagnoses %in% input$cancer_filter)
+      }
+    }
     
+    return(x)
   })
-
+  
+  
+  # get data table
   output$lfs_table <- renderDataTable({
+    
     x <- get_data()
     if(!is.null(x)){
-      colnames(x) <- c('Gender','Mean age of onset', 'Means age of sample collection', 'Mean current age')
-      out <- DT::datatable(x)
+      # colnames(x) <- c('Gender','Mean age of onset', 'Means age of sample collection', 'Mean current age')
+      out <- DT::datatable(x, caption = "Clinical data")
       return(out)
     } else {
-      return(NULL)
+      DT::datatable(data_frame(' ' = 'Please choose at least one variable to group by'), rownames = FALSE, options = list(dom = 't'))
     }
   })
-  
-  
-  
-  
-  
  
 }
 

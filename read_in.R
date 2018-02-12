@@ -298,6 +298,8 @@ if('new_clin.RData' %in% dir()){
   
   rm(clin1, clin2, empty_table)
   
+  clin$cancer_diagnosis_diagnoses <-  Hmisc::capitalize(clin$cancer_diagnosis_diagnoses)
+  
   save.image('new_clin.RData')
   
 }
