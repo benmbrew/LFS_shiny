@@ -167,12 +167,11 @@ server <- function(input, output) {
       }
     
   })
-  
-  
+
   output$lfs_table <- renderDataTable({
     x <- get_data()
     if(!is.null(x)){
-      colnames(x) <- c('Mean age of onset', 'Means age of sample collection', 'Mean current age')
+      colnames(x) <- c('Gender','Mean age of onset', 'Means age of sample collection', 'Mean current age')
       out <- DT::datatable(x)
       return(out)
     } else {
