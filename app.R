@@ -1,102 +1,194 @@
-
-# shinyapps::deployApp()
-#library(shiny)
 library(shiny)
-library(ggplot2)
+library(googleVis)
 library(DT)
+library(RColorBrewer)
+library(networkD3)
+options(gvis.plot.tag = 'chart')
+library(shinyBS)
+library(shinyLP)
+library(ggplot2)
+library(shinythemes)
+library(shinydashboard)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(memisc)
 
-# source script to get data
 source('read_in.R')
+source('functions.R')
 
-# UI
-ui <- fluidPage(
-  titlePanel("LFS"),
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("clin_group", 
-                  "Group by variable",
-                  choices = clin_choices_group,
-                  multiple = TRUE),
-      uiOutput("clin_summarise")
-    ),
-    
-    mainPanel(
-      tableOutput("clin_tab"),
-      plotOutput("clin_plot"),
-      textOutput('no_data_text'),
-      br(), br()
-      
-    )
-  )
-)
+ui <- dashboardPage(skin = 'red',
+                    
+                    
+                    dashboardHeader(
+                      title = "LFS database at SickKids",
+                      titleWidth = 300
+                    ),
+                    
+                    dashboardSidebar(width = 300,
+                                     
+                                     sidebarMenu(
+                                       menuItem('lfs_database',
+                                                icon = icon('users'),
+                                                tabName = 'lfs_database'),
+                                       menuItem('placeholder_1',
+                                                icon = icon('address-book-o'),
+                                                tabName = 'place_holder_@'),
+                                       menuItem("About",
+                                                icon = icon('folder-open'),
+                                                tabName = "about"))),
+                    dashboardBody(
+                      tags$head(
+                        tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+                      ),
+                      tabItems(
+                        tabItem(tabName = "lfs_database",
+                                h2('Explore Sickkids database'),
+                                helpText('example text'),
+                                fluidRow(column(12,
+                                               strong('Examine by'))),
+                                fluidRow(column(4, 
+                                                checkboxInput('gender',
+                                                              'Gender',
+                                                              value = TRUE)),
+                                         column(4,
+                                                checkboxInput('p53_status',
+                                                              'tp53 status')),
+                                         column(4,
+                                                checkboxInput('cancer_status',
+                                                              'Cancer type'))),
+                                fluidRow(column(4,
+                                                uiOutput('gender_filter')),
+                                         column(4,
+                                                uiOutput('p53_filter')),
+                                         column(4,
+                                                uiOutput('cancer_filter'))),
+                                
+                                
+                                tabsetPanel(
+                                  tabPanel('Table',
+                                           fluidRow(column(12,
+                                                           textOutput('lfs_text'),
+                                                           DT::dataTableOutput('lfs_table')
+                                           ))),
+                                  tabPanel('Plot', 
+                                           checkboxInput('show_labels',
+                                                         'Show values on charts?',
+                                                         TRUE),
+                                           plotOutput('bar_plot')))),
+                        tabItem(
+                          tabName = 'about',
+                          fluidPage(
+                            fluidRow(
+                              div(img(src='logo_clear.png', align = "center"), style="text-align: center;"),
+                              h4('Built in partnership with ',
+                                 a(href = 'http://databrew.cc',
+                                   target='_blank', 'Databrew'),
+                                 align = 'center'),
+                              p('Empowering research and analysis through collaborative data science.', align = 'center'),
+                              div(a(actionButton(inputId = "email", label = "info@databrew.cc", 
+                                                 icon = icon("envelope", lib = "font-awesome")),
+                                    href="mailto:info@databrew.cc",
+                                    align = 'center')), 
+                              style = 'text-align:center;'
+                            )
+                          )
+                        )
+                        
+                      )))
 
 
-# SERVER
+
+
+# Define server 
 server <- function(input, output) {
-  
-  
-  output$clin_summarise <- renderUI({
-    
-    first_variable <- input$clin_group
-    if(is.null(first_variable)) {
-      NULL
-    } else {
-      grouped_var <- input$clin_group
-      clin_choices_sum <- clin_choices_sum[!grepl(grouped_var, clin_choices_sum)]
-      selectInput('clin_summarise',
-                  'Choose a second variable to summarise',
-                  choices = clin_choices_sum)
+  # gender filter
+  output$gender_filter <- renderUI({
+    if(input$gender){
+      gender_types <- unique(clin$gender)
+      gender_types <- gender_types[!is.na(gender_types)]
+      gender_types <- c('All', gender_types)
+      selectInput('gender_filter',
+                  'Filter',
+                  choices = gender_types,
+                  selected = 'All',
+                  multiple = TRUE)
     }
-    
   })
   
-  output$clin_tab <- renderDataTable({
+  output$p53_filter <- renderUI({
+    if(input$p53_status){
+      p53_types <- unique(clin$p53_germline)
+      p53_types <- p53_types[!is.na(p53_types)]
+      p53_types <- c('All', p53_types)
+      selectInput('p53_filter',
+                  'Filter',
+                  choices = p53_types ,
+                  multiple = TRUE)
+    }
+  })
+  
+  output$cancer_filter <- renderUI({
+    if(input$cancer_status){
+      cancer_types <- unique(clin$cancer_diagnosis_diagnoses)
+      cancer__types <- cancer_types[!is.na(cancer_types)]
+      cancer_types <- c('All', cancer_types)
+      selectInput('cancer_filter',
+                  'Filter',
+                  choices = cancer_types ,
+                  multiple = TRUE)
+    }
+  
+  })
+  
+  get_data <- reactive({
     
-    group_var <- input$clin_group
-    summarise_var <- input$clin_summarise
+    x <- clin
     
-    get_these_vars <- c(group_var, summarise_var)
-    
-    if(is.null(group_var) & is.null(summarise_var)) {
-      NULL
-    } else {
-      if(!is.null(group_var) & is.null(summarise_var)) {
-        clin_sub <- clin[, colnames(clin) %in% get_these_vars]
-        if(length(group_var) == 1){
-          clin_sub <- clin_sub[!is.na(clin_sub)]
-          clin_sub <- as.data.frame(clin_sub)
-          colnames(clin_sub) <- group_var
-        } else {
-          clin_sub <- clin_sub[complete.cases(clin_sub),]
-          colnames(clin_sub) <- group_var
-        }
-        the_tible <- clin_sub %>% group_by_at(group_var) %>% summarise(Counts = n())
-      } else if(!is.null(group_var) & !is.null(summarise_var)) {
-        clin_sub <- clin[, colnames(clin) %in% get_these_vars]
-        clin_sub <- clin_sub[complete.cases(clin_sub),]
-        the_tible <- clin_sub %>% group_by_at(group_var) %>% summarise_all(funs(mean(. , na.rm = T)))
+    if(is.null(input$gender)){
+      return(NULL)
+    } else if(input$gender & is.null(input$gender_filter)){
+        x <- x %>% group_by(gender) %>% filter(!is.na(gender)) %>%
+          summarise(mean_age_diagnosis = round(mean(age_diagnosis, na.rm = T), 2),
+                    mean_age_sample_collection = round(mean(age_sample_collection, na.rm = T), 2),
+                    mean_current_age = round(mean(age, na.rm = T), 2))
+      } else if(input$gender & (input$gender_filter == 'All')) {
+        x <- x %>% group_by(gender) %>% filter(!is.na(gender)) %>%
+          summarise(mean_age_diagnosis = round(mean(age_diagnosis, na.rm = T), 2),
+                    mean_age_sample_collection = round(mean(age_sample_collection, na.rm = T), 2),
+                    mean_current_age = round(mean(age, na.rm = T), 2))
+      } else if(input$gender & !is.null(input$gender_filter)) {
+        x <- x %>% group_by(gender) %>% filter(!is.na(gender)) %>%
+          summarise(mean_age_diagnosis = round(mean(age_diagnosis, na.rm = T), 2),
+                    mean_age_sample_collection = round(mean(age_sample_collection, na.rm = T), 2),
+                    mean_current_age = round(mean(age, na.rm = T), 2))
+        x <- x %>% filter(gender %in% input$gender_filter)
       }
-      DT::datatable(the_tible)
-    }
     
   })
   
-  output$no_data_text <- renderText({
-    
-    if(is.null(input$clin_group)){
-      paste0('Please select a variable to group by')
+  
+  output$lfs_table <- renderDataTable({
+    x <- get_data()
+    if(!is.null(x)){
+      colnames(x) <- c('Mean age of onset', 'Means age of sample collection', 'Mean current age')
+      out <- DT::datatable(x)
+      return(out)
     } else {
-      NULL
+      return(NULL)
     }
-    
-  })
-  
-  output$clin_plot <- renderPlot({
-   
-    
   })
   
   
+  
+  
+  
+ 
 }
 
-shinyApp(ui = ui, server = server)
+# Run the application 
+shinyApp(ui = ui,
+         # htmlTemplate("www/index.html"), 
+         server)
+

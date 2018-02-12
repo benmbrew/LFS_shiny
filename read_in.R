@@ -201,8 +201,8 @@ if('new_clin.RData' %in% dir()){
   # clean p53
   ##########
   clin$gender <- as.character(clin$gender)
-  clin$gender <- ifelse(clin$gender == 1, 'M', 
-                        ifelse(clin$gender == 0, 'F', 
+  clin$gender <- ifelse(clin$gender == 'M', 'Male', 
+                        ifelse(clin$gender == 'F', 'Female', 
                                ifelse(clin$gender == 'unknown', NA, clin$gender)))
   
   # replace LFS with family
@@ -297,26 +297,6 @@ if('new_clin.RData' %in% dir()){
   clin$mdm2.nG[clin$mdm2 == 'G/G'] <- 2
   
   rm(clin1, clin2, empty_table)
-  
-  # get choices from data
-  # get default choices
-  clin_choices_group = c('Gender' = 'gender',
-                         'Family Number' = 'family_name',
-                         'Relationship' = 'relationship',
-                         'tp53 Status' = 'p53_germline',
-                         'Cancer Diagnosis' = 'cancer_diagnosis_diagnoses',
-                         'Codon 72' = 'codon_72',
-                         'MDM2' = 'mdm2',
-                         'GDNA Codon' = 'gdna.codon',
-                         'GDNA Exon Intron' = 'gdna.exon.intron',
-                         'GDNA Base Change' = 'gdna.base.change',
-                         'Protein Codon Change' = 'protein.codon.change',
-                         'Protein Codon Num' = 'protein.codon.num',
-                         'Mutation type' = 'splice.delins.snv')
-  
-  clin_choices_sum = c('Current Age' = 'age',
-                       'Age of Diagnosis' = 'age_diagnosis',
-                       'Age of sample collection' = 'age_sample_collection')
   
   save.image('new_clin.RData')
   
