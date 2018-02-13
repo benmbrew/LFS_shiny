@@ -20,7 +20,7 @@ source('functions.R')
 
 # add tab for raw data
 # summary stats second 
-# add in more group by variabl
+# add in more group
 
 ui <- dashboardPage(skin = 'red',
                     
@@ -33,12 +33,15 @@ ui <- dashboardPage(skin = 'red',
                     dashboardSidebar(width = 300,
                                      
                                      sidebarMenu(
-                                       menuItem('lfs_database',
-                                                icon = icon('users'),
+                                       menuItem('Raw clinical data',
+                                                icon = icon('table'),
+                                                tabName = 'raw_clin'),
+                                       menuItem('Summary stats',
+                                                icon = icon('bar-chart-o'),
                                                 tabName = 'lfs_database'),
-                                       menuItem('placeholder_1',
-                                                icon = icon('address-book-o'),
-                                                tabName = 'place_holder_@'),
+                                       menuItem('Methylation',
+                                                icon = icon('microchip'),
+                                                tabName = 'methyl'),
                                        menuItem("About",
                                                 icon = icon('folder-open'),
                                                 tabName = "about"))),
@@ -83,6 +86,7 @@ ui <- dashboardPage(skin = 'red',
                                                          'Show values on charts?',
                                                          TRUE),
                                            plotOutput('bar_plot')))),
+                        
                         tabItem(
                           tabName = 'about',
                           fluidPage(
@@ -178,7 +182,8 @@ server <- function(input, output) {
       x  <- clin %>% 
         group_by_at(group_by_cols) %>%  
         summarise(`Mean age diagnosis` = round(mean(age_diagnosis, na.rm = T), 2),
-                  `Mean age of sample collection` = round(mean(age_sample_collection, na.rm = T), 2))
+                  `Mean age of sample collection` = round(mean(age_sample_collection, na.rm = T), 2),
+                  Counts = n())
       
       if(input$gender & !is.null(input$gender_filter)) {
         x <- x %>% filter(gender %in% input$gender_filter)
