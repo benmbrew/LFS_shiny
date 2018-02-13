@@ -18,6 +18,10 @@ library(memisc)
 source('read_in.R')
 source('functions.R')
 
+# add tab for raw data
+# summary stats second 
+# add in more group by variabl
+
 ui <- dashboardPage(skin = 'red',
                     
                     
@@ -195,7 +199,6 @@ server <- function(input, output) {
   
   # get data table
   output$lfs_table <- renderDataTable({
-    
     x <- get_data()
     if(!is.null(x)){
       # colnames(x) <- c('Gender','Mean age of onset', 'Means age of sample collection', 'Mean current age')
@@ -205,7 +208,6 @@ server <- function(input, output) {
       DT::datatable(data_frame(' ' = 'Please choose at least one variable to group by'), rownames = FALSE, options = list(dom = 't'))
     }
   })
- 
 }
 
 # Run the application 

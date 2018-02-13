@@ -9,6 +9,8 @@ library(dplyr)
 library(gsubfn)
 library(gsheet)
 library(readr)
+library(Hmisc)
+library(memisc)
 
 if('new_clin.RData' %in% dir()){
 
@@ -300,6 +302,25 @@ if('new_clin.RData' %in% dir()){
   
   clin$cancer_diagnosis_diagnoses <-  Hmisc::capitalize(clin$cancer_diagnosis_diagnoses)
   
+  clin$age_diagnosis <- round(clin$age_diagnosis/12, 2)
+  clin$age_sample_collection <- round(clin$age_sample_collection/12, 2)
+  
+  unique(clin$cancer_diagnosis_diagnoses)
+  clin$cancer_diagnosis_diagnoses[grepl('All', clin$cancer_diagnosis_diagnoses)]
+  clin$cancer_diagnosis_diagnoses <- gsub(',', ' & ', clin$cancer_diagnosis_diagnoses, fixed = TRUE)
+  clin$cancer_diagnosis_diagnoses <- gsub(', ', ' & ', clin$cancer_diagnosis_diagnoses, fixed = TRUE)
+  
+  # recode cancer 
+  clin$cancer_diagnosis_diagnoses <- 
+    ifelse(grepl('sarcoma', clin$cancer_diagnosis_diagnoses), 
+           'Sarcoma',
+           ifelse(grepl('All', clin$cancer_diagnosis_diagnoses), 
+                  'ALL', 
+                  ifelse(nchar(clin$cancer_diagnosis_diagnoses) < 4, 
+                         toupper(clin$cancer_diagnosis_diagnoses), 
+                         ifelse(nchar(clin$cancer_diagnosis_diagnoses) >= 4,
+                                Hmisc::capitalize(clin$cancer_diagnosis_diagnoses), clin$cancer_diagnosis_diagnoses))))
+
   save.image('new_clin.RData')
   
 }
