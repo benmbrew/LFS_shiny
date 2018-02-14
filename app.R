@@ -50,11 +50,18 @@ ui <- dashboardPage(skin = 'red',
                         tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
                       ),
                       tabItems(
+                        tabItem(tabName = "raw_clin",
+                                h2('Download clinical data'),
+                                helpText(''),
+                                fluidRow(column(12,
+                                                DT::dataTableOutput('clin_table')))
+                            
+                               ),
                         tabItem(tabName = "lfs_database",
                                 h2('Explore Sickkids database'),
                                 helpText('example text'),
                                 fluidRow(column(12,
-                                               strong('Examine by'))),
+                                                strong('Examine by'))),
                                 fluidRow(column(4, 
                                                 checkboxInput('cancer_status',
                                                               'Cancer type',
@@ -202,6 +209,14 @@ server <- function(input, output) {
   })
   
   
+  get_clin_table <- reactive({
+    
+    x <- clin
+    
+    return(x)
+  })
+  
+  
   # get data table
   output$lfs_table <- renderDataTable({
     x <- get_data()
@@ -213,7 +228,23 @@ server <- function(input, output) {
       DT::datatable(data_frame(' ' = 'Please choose at least one variable to group by'), rownames = FALSE, options = list(dom = 't'))
     }
   })
+  
+  # get data table
+  output$clin_table <- renderDataTable({
+    x <- get_clin_table()
+    if(!is.null(x)){
+      # colnames(x) <- c('Gender','Mean age of onset', 'Means age of sample collection', 'Mean current age')
+      out <- prettify(x)
+      return(out)
+    } else {
+      DT::datatable(data_frame(' ' = 'Please by'), rownames = FALSE, options = list(dom = 't'))
+    }
+  })
+
 }
+
+
+
 
 # Run the application 
 shinyApp(ui = ui,
