@@ -1,0 +1,12 @@
+name: LFS_database
+title: LFS_database
+username:
+account: benmbrew
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 312649
+bundleId: 1464816
+url: https://benmbrew.shinyapps.io/LFS_database/
+when: 1530719716.1011
+asMultiple: FALSE
+asStatic: FALSE

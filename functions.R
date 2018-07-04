@@ -1,3 +1,5 @@
+
+
 # Define function for printing nice html tables
 prettify <- function (the_table, remove_underscores_columns = TRUE, cap_columns = TRUE,
                       cap_characters = TRUE, comma_numbers = TRUE, date_format = "%B %d, %Y",
@@ -75,3 +77,7 @@ prettify <- function (the_table, remove_underscores_columns = TRUE, cap_columns 
   }
   return(the_table)
 }
+
+
+
+

@@ -4,17 +4,16 @@
 
 ##########
 # initialize folders
-##########
+# ##########
 library(dplyr)
 library(gsubfn)
 library(gsheet)
 library(readr)
 library(Hmisc)
-library(memisc)
 
-if('new_clin.RData' %in% dir()){
+if('new_clin.RData' %in% dir('data')){
 
-  load('new_clin.RData')
+  load('data/new_clin.RData')
 } else {
   ##########
   # read in clinical data, sheets 1 and 2
@@ -69,37 +68,206 @@ if('new_clin.RData' %in% dir()){
   clin$age_sample_collection <- gsub('unknown|NA', NA, clin$age_sample_collection)
   clin$age_diagnosis <- gsub('unknown|NA', NA, clin$age_diagnosis)
   
-  #########
-  # function to split rows with multiple sample ids
-  #########
-  splitRows <- function(data, duplicate_table){
-    
-    for (i in 1:nrow(data)) {
-      sub_data <- data[i,]
-      
-      if (grepl('/', sub_data$blood_dna_malkin_lab) | 
-          grepl('/', sub_data$age_sample_collection)) {
-        split_malkin <- strsplit(as.character(sub_data$blood_dna_malkin_lab), '/')
-        split_age <- strsplit(as.character(sub_data$age_sample_collection), '/')
-        split_malkin <- cbind(unlist(split_malkin))
-        split_age <- cbind(unlist(split_age))
-        duplicate <- cbind(split_malkin, split_age, sub_data)
-        duplicate_table <- rbind(duplicate_table, duplicate)
+  # need to add data to throws that are represent multiple cancers, to replace the NAs
+  
+  for(i in 1:nrow(clin)) {
+    sub_dat <- clin[i,]
+    if(grepl('^P2', sub_dat$cancer_diagnosis_diagnoses)) {
+      #get one row previous index 
+      j <- i - 1
+      clin_j <- clin[j,]
+      sub_dat$family_name <- clin_j$family_name
+      sub_dat$relationship <- clin_j$relationship
+      sub_dat$tm_donor <- clin_j$tm_donor
+      sub_dat$p53_germline <- clin_j$p53_germline
+      if(is.na(sub_dat$cancer_diagnosis_diagnoses)) {
+        sub_dat$cancer_diagnosis_diagnoses <- clin_j$cancer_diagnosis_diagnoses
       }
+      if(is.na(sub_dat$age_diagnosis)) {
+        sub_dat$age_diagnosis <- clin_j$age_diagnosis
+      }
+      
+      if(!grepl('/', clin_j$age_sample_collection)) {
+        sub_dat$age_sample_collection <- clin_j$age_sample_collection
+      }
+      
+      if(!grepl('/', clin_j$blood_dna_malkin_lab)) {
+        sub_dat$blood_dna_malkin_lab <- clin_j$blood_dna_malkin_lab
+
+      }
+      
+      
+      
+      clin[i,] <- sub_dat
+      
+      
+    } else if(grepl('^P3', sub_dat$cancer_diagnosis_diagnoses)){
+      
+      #get one row previous index 
+      j <- i - 2
+      clin_j <- clin[j,]
+      sub_dat$family_name <- clin_j$family_name
+      sub_dat$relationship <- clin_j$relationship
+      sub_dat$tm_donor <- clin_j$tm_donor
+      sub_dat$p53_germline <- clin_j$p53_germline
+      if(is.na(sub_dat$cancer_diagnosis_diagnoses)) {
+        sub_dat$cancer_diagnosis_diagnoses <- clin_j$cancer_diagnosis_diagnoses
+      }
+      if(is.na(sub_dat$age_diagnosis)) {
+        sub_dat$age_diagnosis <- clin_j$age_diagnosis
+      }
+      
+      
+      if(!grepl('/', clin_j$age_sample_collection)) {
+        sub_dat$age_sample_collection <- clin_j$age_sample_collection
+      }
+      
+      if(!grepl('/', clin_j$blood_dna_malkin_lab)) {
+        sub_dat$blood_dna_malkin_lab <- clin_j$blood_dna_malkin_lab
+        
+      }
+      clin[i,] <- sub_dat
+      
+    } else if(grepl('^P4', sub_dat$cancer_diagnosis_diagnoses)){
+      
+      #get one row previous index 
+      j <- i - 3
+      clin_j <- clin[j,]
+      sub_dat$family_name <- clin_j$family_name
+      sub_dat$relationship <- clin_j$relationship
+      sub_dat$tm_donor <- clin_j$tm_donor
+      sub_dat$p53_germline <- clin_j$p53_germline
+      if(is.na(sub_dat$cancer_diagnosis_diagnoses)) {
+        sub_dat$cancer_diagnosis_diagnoses <- clin_j$cancer_diagnosis_diagnoses
+      }
+      if(is.na(sub_dat$age_diagnosis)) {
+        sub_dat$age_diagnosis <- clin_j$age_diagnosis
+      }
+      
+      
+      if(!grepl('/', clin_j$age_sample_collection)) {
+        sub_dat$age_sample_collection <- clin_j$age_sample_collection
+      }
+      
+      if(!grepl('/', clin_j$blood_dna_malkin_lab)) {
+        sub_dat$blood_dna_malkin_lab <- clin_j$blood_dna_malkin_lab
+        
+      }
+      
+      clin[i,] <- sub_dat
+      
+    } else if(grepl('^P5', sub_dat$cancer_diagnosis_diagnoses)){
+      
+      #get one row previous index 
+      j <- i - 4
+      clin_j <- clin[j,]
+      sub_dat$family_name <- clin_j$family_name
+      sub_dat$relationship <- clin_j$relationship
+      sub_dat$tm_donor <- clin_j$tm_donor
+      sub_dat$p53_germline <- clin_j$p53_germline
+      if(is.na(sub_dat$cancer_diagnosis_diagnoses)) {
+        sub_dat$cancer_diagnosis_diagnoses <- clin_j$cancer_diagnosis_diagnoses
+      }
+      if(is.na(sub_dat$age_diagnosis)) {
+        sub_dat$age_diagnosis <- clin_j$age_diagnosis
+      }
+      
+      
+      if(!grepl('/', clin_j$age_sample_collection)) {
+        sub_dat$age_sample_collection <- clin_j$age_sample_collection
+      }
+      
+      if(!grepl('/', clin_j$blood_dna_malkin_lab)) {
+        sub_dat$blood_dna_malkin_lab <- clin_j$blood_dna_malkin_lab
+        
+      }
+      clin[i,] <- sub_dat
+      
+    } else if(grepl('^P6', sub_dat$cancer_diagnosis_diagnoses)){
+      
+      #get one row previous index 
+      j <- i - 2
+      clin_j <- clin[j,]
+      sub_dat$family_name <- clin_j$family_name
+      sub_dat$relationship <- clin_j$relationship
+      sub_dat$tm_donor <- clin_j$tm_donor
+      sub_dat$p53_germline <-clin_j$p53_germline
+      if(is.na(sub_dat$cancer_diagnosis_diagnoses)) {
+        sub_dat$cancer_diagnosis_diagnoses <- clin_j$cancer_diagnosis_diagnoses
+      }
+      if(is.na(sub_dat$age_diagnosis)) {
+        sub_dat$age_diagnosis <- clin_j$age_diagnosis
+      }
+      
+      if(!grepl('/', clin_j$age_sample_collection)) {
+        sub_dat$age_sample_collection <- clin_j$age_sample_collection
+      }
+      
+      if(!grepl('/', clin_j$blood_dna_malkin_lab)) {
+        sub_dat$blood_dna_malkin_lab <- clin_j$blood_dna_malkin_lab
+        
+      }
+      clin[i,] <- sub_dat
+      
     }
-    data <- data[!grepl('/', data$blood_dna_malkin_lab),]
-    data <- data[!grepl('/', data$age_sample_collection),]
-    duplicate_table$blood_dna_malkin_lab <- NULL
-    duplicate_table$age_sample_collection <- NULL
-    colnames(duplicate_table)[1:2] <- c('blood_dna_malkin_lab', 'age_sample_collection')
-    duplicate_table <- duplicate_table[, colnames(data)]
-    data <- rbind(duplicate_table, data)
-    return(data)
+  
     
   }
   
-  empty_table <- data.frame(matrix(ncol = ncol(clin), nrow = 0))
-  clin <- splitRows(clin, empty_table)
+  result_list <- list()
+  for(i in unique(clin$tm_donor)) {
+    
+    sub_dat <- clin[clin$tm_donor %in% i,]
+    sub_dat <- sub_dat[!is.na(sub_dat$tm_donor),]
+    
+    if(any(grepl('/', sub_dat$blood_dna_malkin_lab)) |
+       any(grepl('/', sub_dat$age_sample_collection))) {
+      length_ids <- length(unlist(strsplit(as.character(sub_dat$blood_dna_malkin_lab), '/')[1]))
+      
+      n_row <- nrow(sub_dat)
+      
+      if(n_row < length_ids) {
+        age_split <- trimws(unlist(strsplit(as.character(sub_dat$age_sample_collection), split = "/")), 'both')
+        id_split <- trimws(unlist(strsplit(as.character(sub_dat$blood_dna_malkin_lab), split = "/")), 'both')
+        sub_dat <- rbind(sub_dat, sub_dat)
+        sub_dat$blood_dna_malkin_lab <- as.character(sub_dat$blood_dna_malkin_lab)
+        sub_dat$blood_dna_malkin_lab[1] <- id_split[1]
+        sub_dat$blood_dna_malkin_lab[2] <- id_split[2]
+        sub_dat$age_sample_collection <- as.character(sub_dat$age_sample_collection)
+        sub_dat$age_sample_collection[1] <- age_split[1]
+        sub_dat$age_sample_collection[2] <- age_split[2]
+        
+      } else if(n_row == length_ids) {
+        sub_dat$blood_dna_malkin_lab <- as.character(sub_dat$blood_dna_malkin_lab)
+        
+        sub_dat$age_sample_collection <- as.character(sub_dat$age_sample_collection)
+        sub_dat$blood_dna_malkin_lab <- trimws(unlist(strsplit(as.character(sub_dat$blood_dna_malkin_lab), '/')[1]), 'both')
+        sub_dat$age_sample_collection <- trimws(unlist(strsplit(as.character(sub_dat$age_sample_collection), '/')[1]), 'both')
+        
+      } else {
+        sub_dat$blood_dna_malkin_lab <- as.character(sub_dat$blood_dna_malkin_lab)
+        
+        sub_dat$age_sample_collection <- as.character(sub_dat$age_sample_collection)
+        
+        age_split <- trimws(unlist(strsplit(as.character(sub_dat$age_sample_collection), split = "/")), 'both')
+        id_split <- trimws(unlist(strsplit(as.character(sub_dat$blood_dna_malkin_lab), split = "/")), 'both')
+        
+        age_split <- age_split[!is.na(age_split)]
+        id_split <- id_split[!is.na(id_split)]
+        
+        sub_dat[1:length_ids, 'age_sample_collection'] <- age_split
+        sub_dat[1:length_ids, 'blood_dna_malkin_lab'] <- id_split
+        
+      }
+      
+    }
+    
+    result_list[[i]] <- sub_dat
+    
+    print(i)
+  }
+  clin <- do.call(rbind, result_list)
+  
   
   # Clean age of diagnosis column
   clin$age_diagnosis <- as.character(clin$age_diagnosis)
@@ -321,7 +489,59 @@ if('new_clin.RData' %in% dir()){
                          ifelse(nchar(clin$cancer_diagnosis_diagnoses) >= 4,
                                 Hmisc::capitalize(clin$cancer_diagnosis_diagnoses), clin$cancer_diagnosis_diagnoses))))
 
-  save.image('new_clin.RData')
+  
+  
+  
+  
+  full_data <- full_data_first[!duplicated(full_data_first$ids), ]
+  # 
+  full_data1 <- full_data[full_data$ids %in% image_ids,]
+  full_data <- full_data1
+
+  full_data$fam_cancer_ratio <- full_data$fam_num_cancer <- full_data$tm_donor_ <-
+    full_data$family_name <- full_data$a <- full_data$b <- full_data$F <- full_data$M <-
+    full_data$p53_germline <- full_data$sentrix_id <- full_data$gdna.base.change <- full_data$gdna.exon.intron <- NULL
+  
+  saveRDS(full_data, '~/Desktop/image_methy.rda')
+  # read in ids csvs to get data type identifioer
+  methyl_ids <- readRDS('data/methyl_ids.rda')
+  image_ids <- read_csv('data/image_ids.csv')
+  image_ids <- as.character(image_ids$ids)
+  dna_ids <- read_csv('data/seq_ids.csv')
+  colnames(dna_ids) <- c('ids', 'seq_status')
+  # for now remove everything but numbers in id
+  dna_ids$ids <- gsub('A|B|_', '',dna_ids$ids)
+  
+  # dna_ids <- dna_ids %>%
+  #   group_by(ids) %>%
+  #   summarise(cpanel = sum(seq_mod == 'cpanel'),
+  #             wgs = sum(seq_mod == 'wgs'),
+  #             wts = sum(seq_mod == 'wts'))
+  # 
+  # recode cancer to new variable
+  
+  
+  
+  clin$blood_dna_malkin_lab <- as.character(clin$blood_dna_malkin_lab)
+  clin$blood_dna_malkin_lab <- trimws(clin$blood_dna_malkin_lab, 'both')
+  
+  # 20, 258
+  # add a column to clin that indicates TRUE, if overlapping ids exists. 
+  clin$methyl_status <- ifelse(clin$blood_dna_malkin_lab %in% methyl_ids, 'yes', 'no')
+  clin$image_status <- ifelse(clin$blood_dna_malkin_lab %in% image_ids, 'yes', 'no')
+  
+  clin <- left_join(clin, dna_ids, by = c('blood_dna_malkin_lab' = 'ids'))
+  
+  clin$seq_status[is.na(clin$seq_status)] <- 'None'
+
+  # recode cancer diagnosis for app
+  unique(clin$cancer_diagnosis_diagnoses)
+  
+  save.image('data/new_clin.RData')
+  
   
 }
 
+cancer_names <- sort(unique(clin$cancer_diagnosis_diagnoses))
+
+clin <- clin[clin$tm_donor != '3277',]
